@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>RoboDev Build Configuration</title>
+        <script src="jsoneditor.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <h1>RoboDev Build Configuration</h1>
+
+        <div id="editor_holder"></div>
+        <button id="submit">Submit (console.log)</button>
+
+        <script>
+            // Initialize the editor with a JSON schema
+            Promise.all([
+                fetch("schema.json").then(response => response.json()).catch(reason => console.log(reason)),
+                fetch("../JenkinsConfig.json").then(response => response.json()).catch(reason => console.log(reason))
+            ]).then(function([schema, config]) {
+                var editor = new JSONEditor(document.getElementById('editor_holder'),{
+                    schema: schema,
+                    startval: config,
+                    disable_edit_json: true,
+                    theme: "bootstrap3"
+                });
+                // Hook up the submit button to log to the console
+                document.getElementById('submit').addEventListener('click',function() {
+                    // Get the value from the editor
+                    console.log(editor.getValue());
+                });
+            });
+        </script>
+    </body>
+</html>
