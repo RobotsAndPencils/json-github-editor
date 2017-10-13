@@ -19,6 +19,8 @@
                 fetch("schema.json").then(response => response.json()).catch(reason => console.log(reason)),
                 fetch("../JenkinsConfig.json").then(response => response.json()).catch(reason => console.log(reason))
             ]).then(function([schema, config]) {
+                schema.properties.projects.confirmDelete = function() { return window.confirm("Are you sure?") }
+
                 var editor = new JSONEditor(document.getElementById('editor_holder'),{
                     schema: schema,
                     startval: config,
