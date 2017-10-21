@@ -5,6 +5,7 @@
         <script src="jsoneditor.js"></script>
         <script src="jsondiffpatch-full.js"></script>
         <script src="jsondiffpatch-formatters.js"></script>
+        <script src="https://unpkg.com/github-api/dist/GitHub.bundle.min.js"></script>
         <link rel="stylesheet" href="jsondiffpatch-html.css" crossorigin="anonymous">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
@@ -14,8 +15,13 @@
     <body>
         <h1>RoboDev Build Configuration</h1>
 
+        <form action="javascript:void(0);">
+            Token:<br/>
+            <input type="text" id="password" name="password"><br/>
+            <input type="submit" id="authenticate">
+        </form>
+
         <div id="editor_holder"></div>
-        <button id="save">Save</button>
 
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
             <div class="modal-dialog modal-lg" role="document">
@@ -29,32 +35,45 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
+                        <button type="button" class="btn btn-primary" id="commit">Save changes</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <script>
-            // Initialize the editor with a JSON schema
-            Promise.all([
-                fetch("schema.json").then(response => response.json()).catch(reason => console.log(reason)),
-                fetch("../JenkinsConfig.json").then(response => response.json()).catch(reason => console.log(reason))
-            ]).then(function([schema, config]) {
-                schema.properties.projects.confirmDelete = function() { return window.confirm("Are you sure?") }
+            $(document).ready(function() {
+                $("#authenticate").on("click", function() {
+                    var gh = new GitHub({ token: $("#password").val() });
+                    var repo = gh.getRepo("interstateone", "RoboDev");
 
-                var editor = new JSONEditor(document.getElementById('editor_holder'),{
-                    schema: schema,
-                    startval: config,
-                    disable_edit_json: true,
-                    theme: "bootstrap3"
-                });
+                    Promise.all([
+                        repo.getContents("master", "JenkinsConfig.json", true),
+                        repo.getContents("master", "schema.json", true)
+                    ])
+                    .then(function([{data}, {data: schema}]) {
+                        schema.properties.projects.confirmDelete = function() { return window.confirm("Are you sure?") }
 
-                document.getElementById('save').addEventListener('click',function() {
-                    var delta = jsondiffpatch.diff(config, editor.getValue());
-                    document.getElementById('visual-diff').innerHTML = jsondiffpatch.formatters.html.format(delta, config);
+                        var editor = new JSONEditor(document.getElementById('editor_holder'),{
+                            schema: schema,
+                            startval: data,
+                            disable_edit_json: true,
+                            theme: "bootstrap3"
+                        });
 
-                    $('#myModal').modal()
+                        $('#editor_holder').after('<button id="save">Save</button>');
+                        document.getElementById('save').addEventListener('click',function() {
+                            var delta = jsondiffpatch.diff(data, editor.getValue());
+                            document.getElementById('visual-diff').innerHTML = jsondiffpatch.formatters.html.format(delta);
+
+                            $('#myModal').modal()
+                        });
+
+                        $("#commit").on("click", function() {
+                            repo.writeFile("master", "JenkinsConfig.json", JSON.stringify(editor.getValue(), null, 4), "Update build config", { encode: true })
+                        });
+                    })
+                    .catch(error => console.log(error));
                 });
             });
         </script>
