@@ -1,0 +1,15 @@
+{
+  "name": "json-github-editor",
+  "version": "1.0.0",
+  "description": "Allow permitted GitHub users to make changes to a JSON file with a structured editor",
+  "main": "index",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Brandon Evans",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.2"
+  }
+}
