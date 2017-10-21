@@ -71,6 +71,12 @@
                         $('#editor_holder').after('<button id="save">Save</button>');
                         document.getElementById('save').addEventListener('click',function() {
                             var delta = jsondiffpatch.diff(data, editor.getValue());
+
+                            if (delta === undefined) {
+                                alert('No changes made.');
+                                return;
+                            }
+
                             document.getElementById('visual-diff').innerHTML = jsondiffpatch.formatters.html.format(delta);
 
                             $('#myModal').modal()
