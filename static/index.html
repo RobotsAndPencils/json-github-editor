@@ -17,11 +17,7 @@
     <body>
         <h1>RoboDev Build Configuration</h1>
 
-        <form action="javascript:void(0);">
-            Token:<br/>
-            <input type="text" id="password" name="password"><br/>
-            <input type="submit" id="authenticate">
-        </form>
+        <button type="button" class="btn btn-primary" id="authenticate">Authenticate with GitHub</button>
 
         <div id="editor_holder"></div>
 
@@ -45,11 +41,32 @@
 
         <script>
             $(document).ready(function() {
-                $("#authenticate").on("click", function() {
+                var urlParams = new URLSearchParams(window.location.search);
+                var githubTemporaryCode = urlParams.get('code')
+
+                if (githubTemporaryCode == null) {
+                    // The user doesn't have a code from GitHub
+
+                    $("#authenticate").click(function() {
+                        console.log('authing');
+                        window.location.href = 'https://github.com/login/oauth/authorize?client_id='+'da2bd692fdad98c5f8db'+'&scope=repo';
+                        return false;
+                    });
+
+                    return;
+                }
+
+                // The user has a code from GitHub
+
+                $('authenticate').remove();
+
+                $.getJSON('authenticate/'+githubTemporaryCode).then(function(data) {
+                    console.log(data);
+
                     $.spin(true);
                     $('#authenticate').prop('disabled', true);
 
-                    var gh = new GitHub({ token: $("#password").val() });
+                    var gh = new GitHub({ token: data.token });
                     var repo = gh.getRepo("interstateone", "RoboDev");
 
                     Promise.all([
@@ -91,6 +108,11 @@
                         $('#authenticate').prop('disabled', false);
                         console.log(error);
                     });
+                },
+                function(error) {
+                    $.spin(false);
+                    $('#authenticate').prop('disabled', false);
+                    console.log(error);
                 });
             });
         </script>
