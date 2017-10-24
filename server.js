@@ -1,3 +1,4 @@
+require('dotenv').config();
 var url     = require('url'),
     http    = require('http'),
     https   = require('https'),
@@ -7,30 +8,17 @@ var url     = require('url'),
     path    = require('path'),
     app     = express();
 
-// Load config defaults from JSON file.
-// Environment variables override defaults.
-function loadConfig() {
-    var config = JSON.parse(fs.readFileSync(__dirname+ '/config.json', 'utf-8'));
-    for (var i in config) {
-        config[i] = process.env[i.toUpperCase()] || config[i];
-    }
-    return config;
-}
-
-var config = loadConfig();
-
 function authenticate(code, cb) {
     var data = qs.stringify({
-        client_id: config.oauth_client_id,
-        client_secret: config.oauth_client_secret,
+        client_id: process.env.OAUTH_CLIENT_ID,
+        client_secret: process.env.OAUTH_CLIENT_SECRET,
         code: code
     });
 
     var reqOptions = {
-        host: config.oauth_host,
-        port: config.oauth_port,
-        path: config.oauth_path,
-        method: config.oauth_method,
+        host: process.env.AUTH_HOST || 'github.com',
+        path: '/login/oauth/access_token',
+        method: 'POST',
         headers: { 'content-length': data.length }
     };
 
@@ -75,7 +63,7 @@ app.get('/', function(req, res) {
     res.sendFile('index.html');
 });
 
-var port = process.env.PORT || config.port || 9999;
+var port = process.env.PORT || 9999;
 
 app.listen(port, null, function (err) {
     console.log('Gatekeeper, at your service: http://localhost:' + port);
