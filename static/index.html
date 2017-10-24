@@ -60,7 +60,7 @@
                 window.history.replaceState({}, '', `${location.pathname}?${urlParams}`);
                 $('authenticate').remove();
 
-                $.getJSON('authenticate/'+githubTemporaryCode).then(function({token, owner, repo, branch, jsonFile, schemaFile}) {
+                fetch('authenticate/'+githubTemporaryCode).then(response => response.json()).then(function({token, owner, repo, branch, jsonFile, schemaFile}) {
                     $.spin(true);
                     $('#authenticate').prop('disabled', true);
 
