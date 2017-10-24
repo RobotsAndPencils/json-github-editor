@@ -60,16 +60,16 @@
                 window.history.replaceState({}, '', `${location.pathname}?${urlParams}`);
                 $('authenticate').remove();
 
-                $.getJSON('authenticate/'+githubTemporaryCode).then(function(data) {
+                $.getJSON('authenticate/'+githubTemporaryCode).then(function({token, owner, repo, branch, jsonFile, schemaFile}) {
                     $.spin(true);
                     $('#authenticate').prop('disabled', true);
 
-                    var gh = new GitHub({ token: data.token });
-                    var repo = gh.getRepo("interstateone", "RoboDev");
+                    var gh = new GitHub({ token: token });
+                    var repo = gh.getRepo(owner, repo);
 
                     Promise.all([
-                        repo.getContents("master", "JenkinsConfig.json", true),
-                        repo.getContents("master", "schema.json", true)
+                        repo.getContents("master", jsonFile, true),
+                        repo.getContents("master", schemaFile, true)
                     ])
                     .then(function([{data}, {data: schema}]) {
                         $.spin(false);
@@ -99,7 +99,7 @@
 
                         $("#commit").on("click", function() {
                             $.spin(true);
-                            repo.writeFile("master", "JenkinsConfig.json", JSON.stringify(editor.getValue(), null, 4), "Update build config", { encode: true }).then(result => $.spin(false));
+                            repo.writeFile(branch, jsonFile, JSON.stringify(editor.getValue(), null, 4), "Update build config", { encode: true }).then(result => $.spin(false));
                         });
                     }, function(error) {
                         $.spin(false);

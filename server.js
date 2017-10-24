@@ -53,7 +53,14 @@ app.get('/authenticate/:code', function(req, res) {
         if ( err || !token ) {
             result = {"error": err || "bad_code"};
         } else {
-            result = {"token": token};
+            result = {
+                "token": token,
+                "owner": process.env.OWNER,
+                "repo": process.env.REPO,
+                "branch": process.env.BRANCH || 'master',
+                "jsonFile": process.env.JSON_FILE,
+                "schemaFile": process.env.SCHEMA_FILE
+            };
         }
         res.json(result);
     });
