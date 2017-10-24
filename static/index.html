@@ -57,12 +57,11 @@
                 }
 
                 // The user has a code from GitHub
-
+                urlParams.delete('code');
+                window.history.replaceState({}, '', `${location.pathname}?${urlParams}`);
                 $('authenticate').remove();
 
                 $.getJSON('authenticate/'+githubTemporaryCode).then(function(data) {
-                    console.log(data);
-
                     $.spin(true);
                     $('#authenticate').prop('disabled', true);
 
