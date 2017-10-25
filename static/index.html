@@ -2,19 +2,12 @@
     <head>
         <meta charset="utf-8">
         <title>RoboDev Build Configuration</title>
-        <script src="js/jsoneditor.js"></script>
-        <script src="js/jsondiffpatch-full.js"></script>
-        <script src="js/jsondiffpatch-formatters.js"></script>
-        <script src="https://unpkg.com/github-api/dist/GitHub.bundle.min.js"></script>
         <link rel="stylesheet" href="css/jsondiffpatch-html.css" crossorigin="anonymous">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-        <script   src="https://code.jquery.com/jquery-3.2.1.min.js"   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="   crossorigin="anonymous"></script>
-        <script src="http://spin.js.org/spin.min.js"></script>
-        <script src="js/spin.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     </head>
     <body>
+        <div id="spinner_container" style="background-color: rgba(0, 0, 0, 0.3); width:100%; height:100%; position:fixed; top:0px; left:0px; z-index:1000;"></div>
         <h1>RoboDev Build Configuration</h1>
 
         <button type="button" class="btn btn-primary" id="authenticate">Authenticate with GitHub</button>
@@ -39,18 +32,29 @@
             </div>
         </div>
 
+        <script src="js/jsoneditor.js"></script>
+        <script src="js/jsondiffpatch-full.js"></script>
+        <script src="js/jsondiffpatch-formatters.js"></script>
+        <script src="https://unpkg.com/github-api/dist/GitHub.bundle.min.js"></script>
+        <script   src="https://code.jquery.com/jquery-3.2.1.min.js"   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="   crossorigin="anonymous"></script>
+        <script src="http://spin.js.org/spin.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         <script>
-            $(document).ready(function() {
-                var urlParams = new URLSearchParams(window.location.search);
-                var githubTemporaryCode = urlParams.get('code')
+            async function main() {
+                const authButton = document.getElementById("authenticate");
+                const spinner = new Spinner();
+                const spinnerContainer = document.getElementById("spinner_container");
+                spinnerContainer.hidden = true;
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const githubTemporaryCode = urlParams.get('code')
 
                 if (githubTemporaryCode == null) {
                     // The user doesn't have a code from GitHub
 
-                    $("#authenticate").click(function() {
+                    authButton.addEventListener("click", function() {
                         window.location.href = 'https://github.com/login/oauth/authorize?client_id='+'da2bd692fdad98c5f8db'+'&scope=repo';
-                        return false;
-                    });
+                    }, false);
 
                     return;
                 }
@@ -58,61 +62,72 @@
                 // The user has a code from GitHub
                 urlParams.delete('code');
                 window.history.replaceState({}, '', `${location.pathname}?${urlParams}`);
-                $('authenticate').remove();
+                authButton.disabled = true;
 
-                fetch('authenticate/'+githubTemporaryCode).then(response => response.json()).then(function({token, owner, repo, branch, jsonFile, schemaFile}) {
-                    $.spin(true);
-                    $('#authenticate').prop('disabled', true);
-
-                    var gh = new GitHub({ token: token });
-                    var repo = gh.getRepo(owner, repo);
-
-                    Promise.all([
-                        repo.getContents("master", jsonFile, true),
-                        repo.getContents("master", schemaFile, true)
-                    ])
-                    .then(function([{data}, {data: schema}]) {
-                        $.spin(false);
-
-                        schema.properties.projects.confirmDelete = function() { return window.confirm("Are you sure?") }
-
-                        var editor = new JSONEditor(document.getElementById('editor_holder'),{
-                            schema: schema,
-                            startval: data,
-                            disable_edit_json: true,
-                            theme: "bootstrap3"
-                        });
-
-                        $('#editor_holder').after('<button id="save">Save</button>');
-                        document.getElementById('save').addEventListener('click',function() {
-                            var delta = jsondiffpatch.diff(data, editor.getValue());
-
-                            if (delta === undefined) {
-                                alert('No changes made.');
-                                return;
-                            }
-
-                            document.getElementById('visual-diff').innerHTML = jsondiffpatch.formatters.html.format(delta);
-
-                            $('#myModal').modal()
-                        });
-
-                        $("#commit").on("click", function() {
-                            $.spin(true);
-                            repo.writeFile(branch, jsonFile, JSON.stringify(editor.getValue(), null, 4), "Update build config", { encode: true }).then(result => $.spin(false));
-                        });
-                    }, function(error) {
-                        $.spin(false);
-                        $('#authenticate').prop('disabled', false);
-                        console.log(error);
-                    });
-                },
-                function(error) {
-                    $.spin(false);
-                    $('#authenticate').prop('disabled', false);
+                const {token, owner, repo, branch, jsonFile, schemaFile} = await fetch('authenticate/'+githubTemporaryCode).then(response => response.json()).catch(function(error) {
+                    spinner.stop();
+                    spinnerContainer.hidden = true;
+                    authButton.disabled = false;
                     console.log(error);
                 });
-            });
+
+                spinner.spin(spinnerContainer);
+                spinnerContainer.hidden = false;
+
+                const gh = new GitHub({ token: token });
+                const ghRepo = gh.getRepo(owner, repo);
+
+                const [{data}, {data: schema}] = await Promise.all([
+                    ghRepo.getContents(branch, jsonFile, true),
+                    ghRepo.getContents(branch, schemaFile, true)
+                ]).catch(function(error) {
+                    spinner.stop();
+                    spinnerContainer.hidden = true;
+                    authButton.disabled = false;
+                    console.log(error);
+                });
+
+                spinner.stop()
+                spinnerContainer.hidden = true;
+
+                schema.properties.projects.confirmDelete = function() { return window.confirm("Are you sure?") }
+
+                const editor = new JSONEditor(document.getElementById('editor_holder'),{
+                    schema: schema,
+                    startval: data,
+                    disable_edit_json: true,
+                    theme: "bootstrap3"
+                });
+
+                const editorHolder = document.getElementById('editor_holder');
+                const saveButton = document.createElement("button");
+                saveButton.id = "save";
+                saveButton.appendChild(document.createTextNode("Save"));
+                editorHolder.parentNode.insertBefore(saveButton, editorHolder.nextSibling);
+                document.getElementById('save').addEventListener('click',function() {
+                    var delta = jsondiffpatch.diff(data, editor.getValue());
+
+                    if (delta === undefined) {
+                        alert('No changes made.');
+                        return;
+                    }
+
+                    document.getElementById('visual-diff').innerHTML = jsondiffpatch.formatters.html.format(delta);
+
+                    $('#myModal').modal()
+                });
+
+                document.getElementById("commit").addEventListener("click", function() {
+                    spinner.spin(spinnerContainer);
+                    spinnerContainer.hidden = false;
+                    repo.writeFile(branch, jsonFile, JSON.stringify(editor.getValue(), null, 4), "Update build config", { encode: true }).then(function() {
+                        spinner.stop();
+                        spinnerContainer.hidden = true;
+                    });
+                }, false);
+            }
+
+            main();
         </script>
     </body>
 </html>
