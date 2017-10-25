@@ -1,12 +1,13 @@
 require('dotenv').config();
-var url     = require('url'),
-    http    = require('http'),
-    https   = require('https'),
-    fs      = require('fs'),
-    qs      = require('querystring'),
-    express = require('express'),
-    path    = require('path'),
-    app     = express();
+var url             = require('url'),
+    http            = require('http'),
+    https           = require('https'),
+    fs              = require('fs'),
+    qs              = require('querystring'),
+    express         = require('express'),
+    path            = require('path'),
+    mustacheExpress = require('mustache-express'),
+    app             = express();
 
 function authenticate(code, cb) {
     var data = qs.stringify({
@@ -37,6 +38,9 @@ function authenticate(code, cb) {
 }
 
 app.use(express.static(path.join(__dirname, 'static')));
+app.engine('mustache', mustacheExpress());
+app.set('view engine', 'mustache');
+app.set('views', __dirname + '/views');
 
 // Convenience for allowing CORS on routes - GET only
 app.all('*', function (req, res, next) {
@@ -67,7 +71,10 @@ app.get('/authenticate/:code', function(req, res) {
 });
 
 app.get('/', function(req, res) {
-    res.sendFile('index.html');
+    res.render('index', {
+        title: process.env.TITLE || 'JSON Github Editor',
+        clientID: process.env.OAUTH_CLIENT_ID
+    });
 });
 
 var port = process.env.PORT || 9999;

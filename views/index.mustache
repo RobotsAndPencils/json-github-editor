@@ -1,14 +1,14 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>RoboDev Build Configuration</title>
+        <title>{{ title }}</title>
         <link rel="stylesheet" href="css/jsondiffpatch-html.css" crossorigin="anonymous">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
     </head>
     <body>
         <div id="spinner_container" style="background-color: rgba(0, 0, 0, 0.3); width:100%; height:100%; position:fixed; top:0px; left:0px; z-index:1000;"></div>
-        <h1>RoboDev Build Configuration</h1>
+        <h1>{{ title }}</h1>
 
         <button type="button" class="btn btn-primary" id="authenticate">Authenticate with GitHub</button>
 
@@ -53,7 +53,7 @@
                     // The user doesn't have a code from GitHub
 
                     authButton.addEventListener("click", function() {
-                        window.location.href = 'https://github.com/login/oauth/authorize?client_id='+'da2bd692fdad98c5f8db'+'&scope=repo';
+                        window.location.href = 'https://github.com/login/oauth/authorize?client_id={{ clientID }}&scope=repo';
                     }, false);
 
                     return;
