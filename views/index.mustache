@@ -82,7 +82,7 @@
                 const gh = new GitHub({ token: token });
                 const ghRepo = gh.getRepo(owner, repo);
 
-                const [{data}, {data: schema}] = await Promise.all([
+                const [{data: json}, {data: schema}] = await Promise.all([
                     ghRepo.getContents(branch, jsonFile, true),
                     ghRepo.getContents(branch, schemaFile, true)
                 ]).catch(function(error) {
@@ -99,7 +99,7 @@
 
                 const editor = new JSONEditor(document.getElementById('editor_holder'),{
                     schema: schema,
-                    startval: data,
+                    startval: json,
                     disable_edit_json: true,
                     theme: "bootstrap3"
                 });
@@ -111,7 +111,7 @@
                 saveButton.appendChild(document.createTextNode("Save"));
                 editorHolder.parentNode.insertBefore(saveButton, editorHolder.nextSibling);
                 document.getElementById('save').addEventListener('click',function() {
-                    var delta = jsondiffpatch.diff(data, editor.getValue());
+                    var delta = jsondiffpatch.diff(json, editor.getValue());
 
                     if (delta === undefined) {
                         alert('No changes made.');
