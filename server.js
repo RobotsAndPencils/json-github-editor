@@ -86,7 +86,8 @@ app.get('/authenticate/:code', function(req, res) {
 
 app.get('/', function(req, res) {
     res.render('index', {
-        title: process.env.TITLE || 'JSON Github Editor'
+        title: process.env.TITLE || 'JSON Github Editor',
+        commitMessage: process.env.COMMIT_MESSAGE || 'Update config'
     });
 });
 

@@ -128,7 +128,7 @@
                 document.getElementById("commit").addEventListener("click", function() {
                     spinner.spin(spinnerContainer);
                     spinnerContainer.hidden = false;
-                    ghRepo.writeFile(branch, jsonFile, JSON.stringify(editor.getValue(), null, 4), "Update config", { encode: true }).then(function() {
+                    ghRepo.writeFile(branch, jsonFile, JSON.stringify(editor.getValue(), null, 4), "{{ commitMessage }}", { encode: true }).then(function() {
                         $('#myModal').modal('hide');
                         spinner.stop();
                         spinnerContainer.hidden = true;
