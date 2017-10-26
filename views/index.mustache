@@ -8,7 +8,7 @@
     </head>
     <body>
         <div class="container">
-            <div id="spinner_container" style="background-color: rgba(0, 0, 0, 0.3); width:100%; height:100%; position:fixed; top:0px; left:0px; z-index:1000;"></div>
+            <div id="spinner_container" style="background-color: rgba(0, 0, 0, 0.3); width:100%; height:100%; position:fixed; top:0px; left:0px; z-index:2000;"></div>
             <div class="jumbotron text-center">
                 <h1>{{ title }}</h1>
                 <button type="button" class="btn btn-primary" id="authenticate">Authenticate with GitHub</button>
@@ -128,7 +128,8 @@
                 document.getElementById("commit").addEventListener("click", function() {
                     spinner.spin(spinnerContainer);
                     spinnerContainer.hidden = false;
-                    repo.writeFile(branch, jsonFile, JSON.stringify(editor.getValue(), null, 4), "Update build config", { encode: true }).then(function() {
+                    ghRepo.writeFile(branch, jsonFile, JSON.stringify(editor.getValue(), null, 4), "Update config", { encode: true }).then(function() {
+                        $('#myModal').modal('hide');
                         spinner.stop();
                         spinnerContainer.hidden = true;
                     });
