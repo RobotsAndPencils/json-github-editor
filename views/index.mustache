@@ -74,6 +74,7 @@
                     spinnerContainer.hidden = true;
                     authButton.disabled = false;
                     console.log(error);
+                    alert("There was a problem authenticating with GitHub.");
                 });
 
                 spinner.spin(spinnerContainer);
@@ -90,6 +91,7 @@
                     spinnerContainer.hidden = true;
                     authButton.disabled = false;
                     console.log(error);
+                    alert("There was a problem loading the JSON or schema, are you sure you have permissions to access them?");
                 });
 
                 spinner.stop()
