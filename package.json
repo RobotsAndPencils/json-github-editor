@@ -12,6 +12,7 @@
   "dependencies": {
     "dotenv": "^4.0.0",
     "express": "^4.16.2",
-    "mustache-express": "^1.2.5"
+    "mustache-express": "^1.2.5",
+    "uid-promise": "^1.0.0"
   }
 }

@@ -1,13 +1,17 @@
 require('dotenv').config();
-var url             = require('url'),
-    http            = require('http'),
-    https           = require('https'),
-    fs              = require('fs'),
-    qs              = require('querystring'),
-    express         = require('express'),
-    path            = require('path'),
-    mustacheExpress = require('mustache-express'),
-    app             = express();
+const url             = require('url'),
+      http            = require('http'),
+      https           = require('https'),
+      fs              = require('fs'),
+      qs              = require('querystring'),
+      express         = require('express'),
+      path            = require('path'),
+      mustacheExpress = require('mustache-express'),
+      app             = express(),
+      uid             = require('uid-promise');
+
+const states = [];
+const githubHost = process.env.AUTH_HOST || 'github.com';
 
 function authenticate(code, cb) {
     var data = qs.stringify({
@@ -17,7 +21,7 @@ function authenticate(code, cb) {
     });
 
     var reqOptions = {
-        host: process.env.AUTH_HOST || 'github.com',
+        host: githubHost,
         path: '/login/oauth/access_token',
         method: 'POST',
         headers: { 'content-length': data.length }
@@ -52,6 +56,16 @@ app.all('*', function (req, res, next) {
 
 
 app.get('/authenticate/:code', function(req, res) {
+    const code = req.params.code;
+    const state = req.query.state;
+
+    if (!code || !state || !states.includes(state)) {
+        res.status(400).end();
+        return;
+    }
+
+    states.splice(states.indexOf(state), 1);
+
     authenticate(req.params.code, function(err, token) {
         var result
         if ( err || !token ) {
@@ -72,9 +86,14 @@ app.get('/authenticate/:code', function(req, res) {
 
 app.get('/', function(req, res) {
     res.render('index', {
-        title: process.env.TITLE || 'JSON Github Editor',
-        clientID: process.env.OAUTH_CLIENT_ID
+        title: process.env.TITLE || 'JSON Github Editor'
     });
+});
+
+app.get('/login', async function(req, res) {
+    const state = await uid(20);
+    states.push(state);
+    res.redirect(302, `https://${githubHost}/login/oauth/authorize?client_id=${process.env.OAUTH_CLIENT_ID}&scope=repo&state=${state}`)
 });
 
 var port = process.env.PORT || 9999;

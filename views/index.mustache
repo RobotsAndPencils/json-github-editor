@@ -50,13 +50,14 @@
                 spinnerContainer.hidden = true;
 
                 const urlParams = new URLSearchParams(window.location.search);
-                const githubTemporaryCode = urlParams.get('code')
+                const githubTemporaryCode = urlParams.get('code');
+                const githubState = urlParams.get('state');
 
                 if (githubTemporaryCode == null) {
                     // The user doesn't have a code from GitHub
 
                     authButton.addEventListener("click", function() {
-                        window.location.href = 'https://github.com/login/oauth/authorize?client_id={{ clientID }}&scope=repo';
+                        window.location.href = '/login';
                     }, false);
 
                     return;
@@ -64,10 +65,11 @@
 
                 // The user has a code from GitHub
                 urlParams.delete('code');
+                urlParams.delete('state');
                 window.history.replaceState({}, '', `${location.pathname}?${urlParams}`);
                 authButton.disabled = true;
 
-                const {token, owner, repo, branch, jsonFile, schemaFile} = await fetch('authenticate/'+githubTemporaryCode).then(response => response.json()).catch(function(error) {
+                const {token, owner, repo, branch, jsonFile, schemaFile} = await fetch(`authenticate/${githubTemporaryCode}?state=${githubState}`).then(response => response.json()).catch(function(error) {
                     spinner.stop();
                     spinnerContainer.hidden = true;
                     authButton.disabled = false;
