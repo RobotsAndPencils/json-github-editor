@@ -33,7 +33,7 @@ All of the important steps are performed by or strongly influenced by the follow
 - [json-editor](https://github.com/jdorn/json-editor)
 - [jsondiffpatch](https://github.com/benjamine/jsondiffpatch)
 
-The core idea here could probably be a single, static web page, but there are a few reasons that it isn't. First is that in order to keep OAuth secrets, well, secret, a server performs the final request to GitHub to get an access token instead of the browser. Gatekeeper and micro-github both provide turnkey solutions to this problem. The second reason, and why it's a rendered template instead of a non-static web page, is because this allows some parts of the page to be configurable as a more general solution.
+The core idea here could probably be a single, static web page, but there are a few reasons that it isn't. First is that in order to keep OAuth secrets, well, secret, a server performs the final request to GitHub to get an access token instead of the browser. Gatekeeper and micro-github both provide turnkey solutions to this problem. The second reason, and why it's a rendered template instead of a static web page, is because this allows some parts of the page to be configurable as a more general solution.
 
 ## How do I help?
 
